@@ -1,5 +1,7 @@
 import json
 import re
+
+from loguru import logger
 from playwright.async_api import async_playwright
 import asyncio
 import time
@@ -32,6 +34,7 @@ async def navigate_to_page(page, target_page):
             await page.get_by_role("button", name=f"{p}").click()
             await asyncio.sleep(1)
 
+
 async def process_job(data):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
@@ -43,7 +46,7 @@ async def process_job(data):
         try:
             await page.get_by_role("button", name="Tutup").click()
         except Exception as e:
-            print(f"Error closing modal: {e}")
+            logger.error(f"Error closing modal: {e}")
 
         await asyncio.sleep(5)
 
@@ -52,7 +55,7 @@ async def process_job(data):
             await page.wait_for_selector('div[class="flex flex-row gap-2 justify-between"] div[class="max-sm:hidden"] button.duration-75', timeout=10000)
             ranges = await page.query_selector_all('div[class="flex flex-row gap-2 justify-between"] div[class="max-sm:hidden"] button.duration-75')
         except Exception as e:
-            print(f"Error finding range buttons: {e}")
+            logger.error(f"Error finding range buttons: {e}")
             ranges = []
 
         if ranges:
@@ -63,7 +66,7 @@ async def process_job(data):
                     await range.click()
                     await asyncio.sleep(5)
                 except Exception as e:
-                    print(f"Error clicking range button: {e}")
+                    logger.error(f"Error clicking range button: {e}")
 
                 sub_title = await page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1')
                 sub_title_text = await sub_title.inner_text()
@@ -82,7 +85,7 @@ async def process_job(data):
                 await download.save_as(local_file_path)
 
                 if not os.path.exists(local_file_path):
-                    print("Downloaded file does not exist.")
+                    logger.info("Downloaded file does not exist.")
                     await page.close()
                     await browser.close()
                     return False  # Indicate failure
@@ -99,9 +102,9 @@ async def process_job(data):
                     with open(local_file_path, 'rb') as local_file:
                         with s3.open(s3_file_path, 'wb') as s3_file:
                             s3_file.write(local_file.read())
-                        print(f"Uploaded file to S3: {s3_file_path}")
+                        logger.success(f"Uploaded file to S3: {s3_file_path}")
                 except Exception as e:
-                    print(f"Error uploading file to S3: {e}")
+                    logger.info(f"Error uploading file to S3: {e}")
                     await page.close()
                     await browser.close()
                     return False  # Indicate failure
@@ -140,14 +143,14 @@ async def process_job(data):
                     with s3.open(path_json, "w") as f:
                         json.dump(metadata, f)
 
-                    print(f"Written metadata to S3: {path_json}")
+                    logger.success(f"Written metadata to S3: {path_json}")
                 except Exception as e:
-                    print(f"Error writing metadata to S3: {e}")
+                    logger.error(f"Error writing metadata to S3: {e}")
                     await page.close()
                     await browser.close()
                     return False  # Indicate failure
 
-                print(json.dumps(metadata))
+                logger.debug(json.dumps(metadata))
 
         else:
             try:
@@ -157,18 +160,18 @@ async def process_job(data):
                 if select:
                     await select.click()
                     await asyncio.sleep(2)
-                    print("Clicked on the dropdown.")
+                    logger.debug("Clicked on the dropdown.")
                     option = await page.query_selector('div.css-8aqfg3-menu')
                     if option:
                         option_text = await option.inner_text()
                         option_list = option_text.split('\n')
                         optionnya.append(option_list)
-                        print(f"Dropdown options: {option_list}")
+                        logger.debug(f"Dropdown options: {option_list}")
                     else:
-                        print("Dropdown options menu not found.")
+                        logger.debug("Dropdown options menu not found.")
                         return False  # Indicate failure if dropdown options are not found
                 else:
-                    print("Dropdown selector not found.")
+                    logger.warning("Dropdown selector not found.")
                     return False  # Indicate failure if dropdown selector is not found
 
                 for option_bps in optionnya:
@@ -181,7 +184,7 @@ async def process_job(data):
                         try:
                             await page.locator(".css-19bb58m").click()
                             await page.get_by_role("option", name=f"{option_bpsnya}").click()
-                            print(f"Selected option: {option_bpsnya}")
+                            logger.debug(f"Selected option: {option_bpsnya}")
                             await asyncio.sleep(10)
 
                             sub_title = await page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")
@@ -202,7 +205,7 @@ async def process_job(data):
                             await download.save_as(local_file_path)
 
                             if not os.path.exists(local_file_path):
-                                print("Downloaded file does not exist.")
+                                logger.warning("Downloaded file does not exist.")
                                 await page.close()
                                 await browser.close()
                                 return False  # Indicate failure
@@ -220,10 +223,10 @@ async def process_job(data):
                                     with s3.open(s3_file_path, 'wb') as s3_file:
                                         s3_file.write(local_file.read())
 
-                                    print(f"Uploaded file to S3: {s3_file_path}")
+                                    logger.success(f"Uploaded file to S3: {s3_file_path}")
                                         
                             except Exception as e:
-                                print(f"Error uploading file to S3: {e}")
+                                logger.error(f"Error uploading file to S3: {e}")
                                 await page.close()
                                 await browser.close()
                                 return False  # Indicate failure
@@ -261,19 +264,19 @@ async def process_job(data):
                             try:
                                 with s3.open(path_json, "w") as f:
                                     json.dump(metadata, f)
-                                print(f"Wrote metadata to S3: {path_json}")
+                                logger.success(f"Wrote metadata to S3: {path_json}")
                             except Exception as e:
-                                print(f"Error writing metadata to S3: {e}")
+                                logger.error(f"Error writing metadata to S3: {e}")
                                 await page.close()
                                 await browser.close()
                                 return False  # Indicate failure
 
-                            print(json.dumps(metadata))
+                            logger.debug(json.dumps(metadata))
 
                         except Exception as e:
-                            print(f"Error during the download process: {e}")
+                            logger.error(f"Error during the download process: {e}")
             except Exception as e:
-                print(f"Error interacting with dropdown: {e}")
+                logger.error(f"Error interacting with dropdown: {e}")
                 await page.close()
                 await browser.close()
                 return False  # Indicate failure if both interactions fail
@@ -282,31 +285,39 @@ async def process_job(data):
         await browser.close()
         return True  # Indicate success
 
+
 async def main():
     while True:
+        job = None
         try:
-            job = client.reserve()
-            if job is None:
-                print("No more jobs in the queue.")
-                break
+            job = client.reserve(1)
 
             data = json.loads(job.body)
             success = await process_job(data)
 
             if success:
                 client.delete(job)
-                print(f"Job {job.id} processed successfully and deleted.")
+                logger.success(f"Job {job.id} processed successfully and deleted.")
             else:
                 client.delete(job)
-                print(f"Job {job.id} failed and deleted.")
-
+                logger.error(f"Job {job.id} failed and deleted.")
+        except greenstalk.NotFoundError:
+            logger.error("Job already released")
         except greenstalk.TimedOutError:
-            print("No job available, waiting...")
+            logger.debug("No job available, waiting...")
             await asyncio.sleep(5)
         except json.JSONDecodeError:
-            print("Error decoding JSON from job.")
-            client.delete(job)
+            logger.error("Error decoding JSON from job.")
+            if job:
+                client.delete(job)
             await asyncio.sleep(5)
+        except Exception as e:
+            logger.error(e)
+            try:
+                if job:
+                    client.bury(job)
+            except Exception:
+                pass
 
 if __name__ == "__main__":
     asyncio.run(main())
