@@ -139,7 +139,7 @@ async def main():
             success = await process_job(data)
 
             if success:
-                client.bury(job)
+                client.delete(job)
                 logging.info(f"Job {job.id} processed successfully and deleted.")
             else:
                 client.release(job)
