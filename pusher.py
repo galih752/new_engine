@@ -100,7 +100,7 @@ async def process_job(data):
                             print(json.dumps(metadata))
 
                             client = greenstalk.Client(('192.168.150.21', 11300), use='link_data_bps_pusat')
-                            client.put(json.dumps(metadata, indent=2))
+                            client.put(json.dumps(metadata, indent=2), ttr=3600)
 
                             # Optionally upload metadata to S3
                             # file_json = f"{clean_string(sub_title_text)}.json"
