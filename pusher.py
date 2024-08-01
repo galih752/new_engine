@@ -48,13 +48,14 @@ async def process_job(data):
             page = await context.new_page()
 
             await page.goto(data['url'], timeout=120000)
+            print(f"Processing {data['url']}...")
 
             try:
                 await page.get_by_role("button", name="Tutup").click()
             except Exception as e:
                 print(f"Error closing modal: {e}")
 
-            await page.wait_for_selector('//html/body/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/table/tbody/tr[1]/td[2]/div', timeout=60000)
+            await page.wait_for_selector('//html/body/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/table/tbody/tr[1]/td[3]', timeout=60000)
             data_table = await page.query_selector('//html/body/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/table/tbody/tr[1]/td[2]/div')
             if data_table:
                 for current_page in range(1, 12):
@@ -138,7 +139,7 @@ async def main():
             success = await process_job(data)
 
             if success:
-                client.delete(job)
+                client.bury(job)
                 logging.info(f"Job {job.id} processed successfully and deleted.")
             else:
                 client.release(job)
