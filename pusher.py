@@ -35,10 +35,8 @@ async def navigate_to_page(page, target_page):
             await page.get_by_role("button", name=f"{target_page}").click()
         else:
             await page.get_by_role("button", name="5").click()
-            await asyncio.sleep(1)
             for p in range(6, target_page + 1):
                 await page.get_by_role("button", name=f"{p}").click()
-                await asyncio.sleep(1)
     except Exception as e:
         print(f"Error navigating to page {target_page}: {e}")
 
@@ -61,16 +59,10 @@ async def process_job(data):
             if data_table:
                 for current_page in range(1, 12):
                     await navigate_to_page(page, current_page)
-                    await asyncio.sleep(1)
 
                     for n in range(1, 21):
-                        await asyncio.sleep(1)
 
-                        try:
-                            await page.wait_for_selector(f"//html/body/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/table/tbody/tr[1]/td[3]", timeout=60000)
-                        except Exception as e:
-                            print(f"Error waiting for table row {n}: {e}")
-                            continue
+                        await page.wait_for_selector(f"//html/body/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/table/tbody/tr[1]/td[3]", timeout=60000)
                             
                         title = await page.query_selector(f'//html/body/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/table/tbody/tr[{n}]/td[2]/div')
                         title_text = await title.inner_text() if title else ''
@@ -82,8 +74,6 @@ async def process_job(data):
                         
                         if tanggal:
                             await tanggal.click()
-                        
-                        await asyncio.sleep(1)
 
                         try:
                             await page.wait_for_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1', timeout=60000)
@@ -156,14 +146,14 @@ async def main():
 
         except greenstalk.TimedOutError:
             logging.info("No job available, waiting...")
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
         except json.JSONDecodeError:
             print("Error decoding JSON from job.")
             client.release(job)  # Releasing job in case of JSON error
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
         except Exception as e:
             print(f"Unexpected error: {e}")
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
 
 if __name__ == "__main__":
     asyncio.run(main())

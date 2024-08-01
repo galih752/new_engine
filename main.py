@@ -29,10 +29,8 @@ async def navigate_to_page(page, target_page):
         await page.get_by_role("button", name=f"{target_page}").click()
     else:
         await page.get_by_role("button", name="5").click()
-        await asyncio.sleep(1)
         for p in range(6, target_page + 1):
             await page.get_by_role("button", name=f"{p}").click()
-            await asyncio.sleep(1)
 
 
 async def process_job(data):
@@ -48,8 +46,6 @@ async def process_job(data):
         except Exception as e:
             logger.error(f"Error closing modal: {e}")
 
-        await asyncio.sleep(5)
-
         try:
             # Check for range buttons
             await page.wait_for_selector('div[class="flex flex-row gap-2 justify-between"] div[class="max-sm:hidden"] button.duration-75', timeout=10000)
@@ -64,7 +60,7 @@ async def process_job(data):
                     await page.click('h1,text-main-primary')
                     await asyncio.sleep(0.3)
                     await range.click()
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(3)
                 except Exception as e:
                     logger.error(f"Error clicking range button: {e}")
 
@@ -78,7 +74,7 @@ async def process_job(data):
                     await page.get_by_role("menuitem", name="XLSX").click(modifiers=["Alt"])
                 download = await download_info.value
 
-                await asyncio.sleep(5)
+                await asyncio.sleep(3)
 
                 # Save the downloaded file locally
                 local_file_path = os.path.join(os.getcwd(), 'temp_download2023.xlsx')
@@ -185,7 +181,7 @@ async def process_job(data):
                             await page.locator(".css-19bb58m").click()
                             await page.get_by_role("option", name=f"{option_bpsnya}").click()
                             logger.debug(f"Selected option: {option_bpsnya}")
-                            await asyncio.sleep(10)
+                            await asyncio.sleep(5)
 
                             sub_title = await page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")
                             sub_title_text = await sub_title.inner_text()
@@ -198,7 +194,7 @@ async def process_job(data):
                                 await page.get_by_role("menuitem", name="XLSX").click(modifiers=["Alt"])
                             download = await download_info.value
 
-                            await asyncio.sleep(5)
+                            await asyncio.sleep(3)
 
                             # Save the downloaded file locally
                             local_file_path = os.path.join(os.getcwd(), 'temp_download2023.xlsx')
@@ -305,12 +301,12 @@ async def main():
             logger.error("Job already released")
         except greenstalk.TimedOutError:
             logger.debug("No job available, waiting...")
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
         except json.JSONDecodeError:
             logger.error("Error decoding JSON from job.")
             if job:
                 client.delete(job)
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
         except Exception as e:
             logger.error(e)
             try:
