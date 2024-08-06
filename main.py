@@ -63,6 +63,7 @@ async def process_job(data):
                     await asyncio.sleep(3)
                 except Exception as e:
                     logger.error(f"Error clicking range button: {e}")
+                    continue
 
                 sub_title = await page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1')
                 sub_title_text = await sub_title.inner_text()
@@ -171,10 +172,10 @@ async def process_job(data):
                         logger.debug(f"Dropdown options: {option_list}")
                     else:
                         logger.debug("Dropdown options menu not found.")
-                        return False  # Indicate failure if dropdown options are not found
+                        return True
                 else:
                     logger.warning("Dropdown selector not found.")
-                    return False  # Indicate failure if dropdown selector is not found
+                    return True  
 
                 for option_bps in optionnya:
                     for option in option_bps:
