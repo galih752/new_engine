@@ -35,7 +35,7 @@ async def navigate_to_page(page, target_page):
 
 async def process_job(data):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=False)
         context = await browser.new_context()
         page = await context.new_page()
 
@@ -124,7 +124,7 @@ async def process_job(data):
                         "bps.go.id",
                         "statistics table",
                     ],
-                    "title": data['title'],
+                    "title": data['title'].replace('.xlsx',''),
                     "sub_title": sub_title_text,
                     'update': data['update'],
                     'desc': description,
@@ -150,9 +150,6 @@ async def process_job(data):
                     logger.success(f"Written metadata to S3: {path_json}")
                 except Exception as e:
                     logger.error(f"Error writing metadata to S3: {e}")
-                    await page.close()
-                    await browser.close()
-                    return False  # Indicate failure
 
                 logger.debug(json.dumps(metadata))
 
@@ -254,7 +251,7 @@ async def process_job(data):
                                     "bps.go.id",
                                     "statistics table",
                                 ],
-                                "title": data['title'],
+                                "title": data['title'].replace('.xlsx',''),
                                 "sub_title": sub_title_text,
                                 'update': data['update'],
                                 'desc': description,
@@ -279,9 +276,6 @@ async def process_job(data):
                                 logger.success(f"Wrote metadata to S3: {path_json}")
                             except Exception as e:
                                 logger.error(f"Error writing metadata to S3: {e}")
-                                await page.close()
-                                await browser.close()
-                                return False  # Indicate failure
 
                             logger.debug(json.dumps(metadata))
 
@@ -289,9 +283,6 @@ async def process_job(data):
                             logger.error(f"Error during the download process: {e}")
             except Exception as e:
                 logger.error(f"Error interacting with dropdown: {e}")
-                await page.close()
-                await browser.close()
-                return False  # Indicate failure if both interactions fail
 
         sub_title = await page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")
         sub_title_text = await sub_title.inner_text()
@@ -352,7 +343,7 @@ async def process_job(data):
                 "bps.go.id",
                 "statistics table",
             ],
-            "title": data['title'],
+            "title": data['title'].replace('.xlsx',''),
             "sub_title": sub_title_text,
             'update': data['update'],
             'desc': data['desc'],
