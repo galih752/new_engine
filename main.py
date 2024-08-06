@@ -35,7 +35,7 @@ async def navigate_to_page(page, target_page):
 
 async def process_job(data):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
 
@@ -122,7 +122,7 @@ async def process_job(data):
                     "title": data['title'],
                     "sub_title": sub_title_text,
                     'update': data['update'],
-                    'desc': data['desc'],
+                    'desc': description,
                     'category': data['category'],
                     'sub_category': data['sub_category'],
                     'path_data_raw': [
