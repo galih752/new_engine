@@ -67,6 +67,11 @@ async def process_job(data):
                 sub_title = await page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1')
                 sub_title_text = await sub_title.inner_text()
 
+                desc = await page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[3]/div')
+                description = ''
+                if desc:
+                    description = await desc.inner_text()
+
                 await page.get_by_role("button", name="Unduh").click()
 
                 # Wait for the download to start
@@ -189,6 +194,11 @@ async def process_job(data):
                             sub_title = await page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")
                             sub_title_text = await sub_title.inner_text()
 
+                            desc = await page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[3]/div')
+                            description = ''
+                            if desc:
+                                description = await desc.inner_text()
+
                             # Proceed with the download logic regardless of the above attempts
                             await page.get_by_role("button", name="Unduh").click()
 
@@ -247,7 +257,7 @@ async def process_job(data):
                                 "title": data['title'],
                                 "sub_title": sub_title_text,
                                 'update': data['update'],
-                                'desc': data['desc'],
+                                'desc': description,
                                 'category': data['category'],
                                 'sub_category': data['sub_category'],
                                 'path_data_raw': [
