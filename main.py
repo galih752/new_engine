@@ -35,11 +35,11 @@ async def navigate_to_page(page, target_page):
 
 async def process_job(data):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
 
-        await page.goto(data['link'], timeout=120000)
+        await page.goto(data['link'], timeout=360000)
 
         try:
             await page.get_by_role("button", name="Tutup").click()
@@ -100,6 +100,7 @@ async def process_job(data):
 
                 if s3.exists(s3_file_path) and s3.exists(path_json):
                     logger.warning(f"File already exists in S3: {s3_file_path}")
+                    continue
 
                 # Upload the file to S3
                 try:
@@ -225,6 +226,7 @@ async def process_job(data):
 
                             if s3.exists(s3_file_path) and s3.exists(path_json):
                                 logger.warning(f"File already exists in S3: {s3_file_path}")
+                                continue
 
                             # Upload the file to S3
                             try:
@@ -319,6 +321,7 @@ async def process_job(data):
 
         if s3.exists(s3_file_path) and s3.exists(path_json):
             logger.warning(f"File already exists in S3: {s3_file_path}")
+            return True
 
         # Upload the file to S3
         try:
