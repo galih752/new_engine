@@ -310,9 +310,8 @@ async def process_job(data):
 
         if not os.path.exists(local_file_path):
             logger.warning("Downloaded file does not exist.")
-            return False  # Indicate failure
-
-        # Create the S3 file path
+            return False 
+        
         file_name = f"{clean_string(sub_title_text)}.xlsx"
         s3_file_path = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/crawl20240806/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/xlsx/{file_name}"
 
@@ -323,7 +322,6 @@ async def process_job(data):
             logger.warning(f"File already exists in S3: {s3_file_path}")
             return True
 
-        # Upload the file to S3
         try:
             with open(local_file_path, 'rb') as local_file:
                 with s3.open(s3_file_path, 'wb') as s3_file:
@@ -333,9 +331,8 @@ async def process_job(data):
 
         except Exception as e:
             logger.error(f"Error uploading file to S3: {e}")
-            return False  # Indicate failure
-
-        # Remove the local temporary file
+            return False 
+        
         os.remove(local_file_path)
 
         metadata = {
