@@ -88,10 +88,13 @@ async def process_job(data):
 
                 # Create the S3 file path
                 file_name = f"{clean_string(sub_title_text)}.xlsx"
-                s3_file_path = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/test/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/xlsx/{file_name}"
+                s3_file_path = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/crawl20240806/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/xlsx/{file_name}"
 
                 file_json = f"{clean_string(sub_title_text)}.json"
-                path_json = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/test/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/json/{file_json}"
+                path_json = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/crawl20240806/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/json/{file_json}"
+
+                if s3.exists(s3_file_path) and s3.exists(path_json):
+                    logger.warning(f"File already exists in S3: {s3_file_path}")
 
                 # Upload the file to S3
                 try:
@@ -208,10 +211,13 @@ async def process_job(data):
 
                             # Create the S3 file path
                             file_name = f"{clean_string(sub_title_text)}.xlsx"
-                            s3_file_path = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/test/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/xlsx/{file_name}"
+                            s3_file_path = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/crawl20240806/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/xlsx/{file_name}"
 
                             file_json = f"{clean_string(sub_title_text)}.json"
-                            path_json = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/test/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/json/{file_json}"
+                            path_json = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/crawl20240806/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/json/{file_json}"
+
+                            if s3.exists(s3_file_path) and s3.exists(path_json):
+                                logger.warning(f"File already exists in S3: {s3_file_path}")
 
                             # Upload the file to S3
                             try:
@@ -277,6 +283,93 @@ async def process_job(data):
                 await browser.close()
                 return False  # Indicate failure if both interactions fail
 
+        sub_title = await page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")
+        sub_title_text = await sub_title.inner_text()
+
+        desc = await page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[3]/div')
+        description = ''
+        if desc:
+            description = await desc.inner_text()
+
+        # Download file directly if no dropdown or range is available
+        await page.get_by_role("button", name="Unduh").click()
+
+        # Wait for the download to start
+        async with page.expect_download() as download_info:
+            await page.get_by_role("menuitem", name="XLSX").click(modifiers=["Alt"])
+        download = await download_info.value
+
+        await asyncio.sleep(3)
+
+        # Save the downloaded file locally
+        local_file_path = os.path.join(os.getcwd(), 'temp_download2023.xlsx')
+        await download.save_as(local_file_path)
+
+        if not os.path.exists(local_file_path):
+            logger.warning("Downloaded file does not exist.")
+            return False  # Indicate failure
+
+        # Create the S3 file path
+        file_name = f"{clean_string(sub_title_text)}.xlsx"
+        s3_file_path = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/crawl20240806/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/xlsx/{file_name}"
+
+        file_json = f"{clean_string(sub_title_text)}.json"
+        path_json = f"s3://ai-pipeline-raw-data/data/data_statistics/bps/pusat/crawl20240806/{data['category'].replace(' ','_').lower()}/{data['sub_category'].replace(' ','_').lower()}/json/{file_json}"
+
+        if s3.exists(s3_file_path) and s3.exists(path_json):
+            logger.warning(f"File already exists in S3: {s3_file_path}")
+
+        # Upload the file to S3
+        try:
+            with open(local_file_path, 'rb') as local_file:
+                with s3.open(s3_file_path, 'wb') as s3_file:
+                    s3_file.write(local_file.read())
+
+                logger.success(f"Uploaded file to S3: {s3_file_path}")
+
+        except Exception as e:
+            logger.error(f"Error uploading file to S3: {e}")
+            return False  # Indicate failure
+
+        # Remove the local temporary file
+        os.remove(local_file_path)
+
+        metadata = {
+            "link": data["link"],
+            "domain": "bps.go.id",
+            "tag": [
+                "bps",
+                "bps.go.id",
+                "statistics table",
+            ],
+            "title": data['title'],
+            "sub_title": sub_title_text,
+            'update': data['update'],
+            'desc': data['desc'],
+            'category': data['category'],
+            'sub_category': data['sub_category'],
+            'path_data_raw': [
+                s3_file_path,
+                path_json
+            ],
+            'file_name': [
+                file_name,
+                file_json  
+            ],
+            'crawling_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'crawling_time_epoch': int(time.time())
+        }
+
+        # Write metadata to S3
+        try:
+            with s3.open(path_json, "w") as f:
+                json.dump(metadata, f)
+            logger.success(f"Wrote metadata to S3: {path_json}")
+        except Exception as e:
+            logger.error(f"Error writing metadata to S3: {e}")
+            return False  # Indicate failure
+
+        logger.debug(json.dumps(metadata))
         await page.close()
         await browser.close()
         return True  # Indicate success
