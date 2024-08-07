@@ -24,20 +24,11 @@ def clean_string(text):
     cleaned = cleaned.replace('/', '_')
     return cleaned.strip('_')
 
-async def navigate_to_page(page, target_page):
-    if target_page <= 5:
-        await page.get_by_role("button", name=f"{target_page}").click()
-    else:
-        await page.get_by_role("button", name="5").click()
-        for p in range(6, target_page + 1):
-            await page.get_by_role("button", name=f"{p}").click()
-
-
 async def process_job(data):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context()
-        page = await context.new_page()
+        page = await context.new_page()                 
 
         await page.goto(data['link'], timeout=360000)
 
