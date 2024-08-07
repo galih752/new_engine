@@ -1,11 +1,11 @@
-import asyncio
-from loguru import logger
 import os
+import json
 
+from time import time
+from loguru import logger
+from datetime import datetime
+from .exceptions import S3Error, DownloadError
 class handleDownload():
-    def __init__(self) -> None:
-        self.page = None
-
     async def handle_range(self, ranges):
         for i, range in enumerate(ranges):
             name_range = await range.text_content()
@@ -62,68 +62,68 @@ class handleDownload():
             if not os.path.exists(local_file_path): 
                 logger.warning("Downloaded file does not exist.")
 
-            (category, sub_category, sub_title) = (
+            name_level = self.link.split('/')[2].split('.')[0]
+            sub_title_text = await (await self.page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")).inner_text()
+            
+            (level, name_level, category, sub_category, sub_title) = (
                 self.clean_string(string) for string in
-                (self.data['category'],
-                self.data['sub_category'],)
-                # sub_title_text)
+                (
+                    "kabupaten_kota" if 'kab' in name_level or 'kota' in name_level else "provinsi", 
+                    name_level,
+                    self.data['category'],
+                    self.data['sub_category'],
+                    sub_title_text
+                )
             )
 
             (s3_file_xlsx, s3_file_json) = (
-                self.s3_path % (f'/{category}/{sub_category}/{format}/{sub_title}.{format}') for format in ('xlsx', 'json')
+                self.s3_path % (f'{level}/{name_level}/{category}/{sub_category}/{format}/{sub_title}.{format}') for format in ('xlsx', 'json')
             )
-            print(s3_file_json)
-            print(s3_file_xlsx)
 
-            # if s3.exists(s3_file_xlsx) and s3.exists(s3_file_json):
-            #     logger.warning(f"File already exists in S3")
-            #     return
+            if self.s3.exists(s3_file_xlsx) and self.s3.exists(s3_file_json):
+                logger.warning(f"File already exists in S3")
+                return
 
-            # # Upload the file to S3
-            # try:
-            #     with open(local_file_path, 'rb') as local_file:
-            #         with s3.open(s3_file_xlsx, 'wb') as s3_file:
-            #             s3_file.write(local_file.read())
+            try:
+                with open(local_file_path, 'rb') as local_file:
+                    with self.s3.open(s3_file_xlsx, 'wb') as s3_file:
+                        s3_file.write(local_file.read())
 
-            #         logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
+                    logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
                         
-            # except Exception as e:
-            #     logger.error(f"Error uploading file to S3")
+            except Exception as e:
+                raise S3Error("failed push to s3 xlsx")
 
-            # # Remove the local temporary file
-            # os.remove(local_file_path)
+            os.remove(local_file_path)
 
-            # metadata = {
-            #     "link": data["link"],
-            #     "domain": "bps.go.id",
-            #     "tag": [
-            #         "bps",
-            #         "bps.go.id",
-            #         "statistics table",
-            #     ],
-            #     "title": data['title'],
-            #     "sub_title": sub_title_text,
-            #     'update': data['update'],
-            #     'desc': description,
-            #     'category': data['category'],
-            #     'sub_category': data['sub_category'],
-            #     'path_data_raw': [
-            #         s3_file_xlsx,
-            #         s3_file_json
-            #     ],
-            #     'file_name': [
-            #         file.split("/")[-1] for file in (s3_file_xlsx, s3_file_json)
-            #     ],
-            #     'crawling_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            #     'crawling_time_epoch': int(time.time())
-            # }
+            metadata = {
+                "link": self.data["link"],
+                "domain": "bps.go.id",
+                "tag": [
+                    "bps",
+                    "bps.go.id",
+                    "statistics table",
+                ],
+                "title": self.data['title'],
+                "sub_title": sub_title_text,
+                'update': (await (await self.page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/p")).inner_text()).split(':')[-1].strip(),
+                'desc': (await desc.inner_text()).strip() if (desc := await self.page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[3]/div')) else None,
+                'category': self.data['category'],
+                'sub_category': self.data['sub_category'],
+                'path_data_raw': [
+                    s3_file_xlsx,
+                    s3_file_json
+                ],
+                'file_name': [
+                    file.split("/")[-1] for file in (s3_file_xlsx, s3_file_json)
+                ],
+                'crawling_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'crawling_time_epoch': int(time())
+            }
 
-            # # Write metadata to S3
-            # try:
-            #     with s3.open(path_json, "w") as f:
-            #         json.dump(metadata, f)                                   
-            #     logger.success(f"Wrote metadata to S3: {path_json}")
-            # except Exception as e:
-            #     logger.error(f"Error writing metadata to S3: {e}")
-
-            # logger.debug(json.dumps(metadata))
+            try:
+                with self.s3.open(s3_file_json, "w") as f:
+                    json.dump(metadata, f)                                  
+                logger.success(f"Wrote metadata to S3: {s3_file_json}")
+            except Exception as e:
+                raise S3Error("failed push to s3 json")

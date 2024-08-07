@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-bps-daerah
+  namespace: nextgen
+data:
+  config.ini: |
+
+    [beanstalk]
+    host = 192.168.150.21
+    port = 11300
