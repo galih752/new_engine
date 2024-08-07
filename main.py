@@ -72,6 +72,8 @@ async def process_job(data):
                 description = ''
                 if desc:
                     description = await desc.inner_text()
+                else:
+                    description = None
 
                 await page.get_by_role("button", name="Unduh").click()
 
@@ -197,6 +199,8 @@ async def process_job(data):
                             description = ''
                             if desc:
                                 description = await desc.inner_text()
+                            else:
+                                description = None
 
                             # Proceed with the download logic regardless of the above attempts
                             await page.get_by_role("button", name="Unduh").click()
@@ -294,6 +298,8 @@ async def process_job(data):
         description = ''
         if desc:
             description = await desc.inner_text()
+        else:
+            description = None
 
         # Download file directly if no dropdown or range is available
         await page.get_by_role("button", name="Unduh").click()
@@ -347,7 +353,7 @@ async def process_job(data):
             "title": data['title'].replace('.xlsx',''),
             "sub_title": sub_title_text,
             'update': data['update'],
-            'desc': data['desc'],
+            'desc': description,
             'category': data['category'],
             'sub_category': data['sub_category'],
             'path_data_raw': [
