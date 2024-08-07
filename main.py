@@ -78,7 +78,7 @@ async def process_job(data):
                 await page.get_by_role("button", name="Unduh").click()
 
                 # Wait for the download to start
-                async with page.expect_download() as download_info:
+                async with page.expect_download(timeout=360000) as download_info:
                     await page.get_by_role("menuitem", name="XLSX").click(modifiers=["Alt"])
                 download = await download_info.value
 
@@ -206,7 +206,7 @@ async def process_job(data):
                             await page.get_by_role("button", name="Unduh").click()
 
                             # Wait for the download to start
-                            async with page.expect_download() as download_info:
+                            async with page.expect_download(timeout=360000) as download_info:
                                 await page.get_by_role("menuitem", name="XLSX").click(modifiers=["Alt"])
                             download = await download_info.value
 
@@ -305,7 +305,7 @@ async def process_job(data):
         await page.get_by_role("button", name="Unduh").click()
 
         # Wait for the download to start
-        async with page.expect_download() as download_info:
+        async with page.expect_download(timeout=360000) as download_info:
             await page.get_by_role("menuitem", name="XLSX").click(modifiers=["Alt"])
         download = await download_info.value
 
