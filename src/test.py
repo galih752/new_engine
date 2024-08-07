@@ -16,7 +16,7 @@ class WorkerBps(PlaywrightContextManager, handleDownload):
     def __init__(self) -> None:
         super().__init__()
         (config := ConfigParser()).read('config.ini')
-
+        self.s3_path = config["s3"].get("s3_path")
         self.beanstalk: BeanStalk = BeanStalk(
             (beanstalk := config["beanstalk"]).get("host"),
             beanstalk.get("port"),
@@ -35,8 +35,8 @@ class WorkerBps(PlaywrightContextManager, handleDownload):
         self.page = await (await self.browser.new_context()).new_page()
         
         while(job := self.beanstalk.watch.reserve()):
-            data = json.loads(job.body)
-            link = data["link"]
+            self.data = json.loads(job.body)
+            link = self.data["link"]
             
             await self.page.goto(link)
             
