@@ -110,21 +110,21 @@ def main():
             success = proses_job(data)
 
             if success:
-                greenstalk_client.release(job)
+                greenstalk_client.bury(job)
                 logger.success(f"Job {job.id} processed successfully and deleted.")
             else:
-                greenstalk_client.release(job)
+                greenstalk_client.bury(job)
                 logger.error(f"Job {job.id} failed and buried.")
         except greenstalk.NotFoundError:
             if job:
                 logger.error(f"Job {job.id} not found.")
-                greenstalk_client.release(job)
+                greenstalk_client.bury(job)
         except greenstalk.TimedOutError:
             logger.error("Timed out while reserving a job.")
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             if job:
-                greenstalk_client.release(job)
+                greenstalk_client.bury(job)
         time.sleep(1)
 
 if __name__ == "__main__":
