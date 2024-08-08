@@ -1,1 +1,1 @@
-from workerbps import WorkerBps
+from .workerbps import WorkerBps
