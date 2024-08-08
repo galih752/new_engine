@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: smart-crawler
+    kind: bps-daerah
+  name: bps-daerah-pusher
+  namespace: nextgen
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: smart-crawler
+      kind: bps-daerah
+  template:
+    metadata:
+      labels:
+        app: smart-crawler
+        kind: bps-daerah
+    spec:
+      containers:
+        - name: bps-daerah-pusher
+          image: 192.168.202.50/clipper/smart-crawler/bps_daerah_pusher
+          imagePullPolicy: Always
+          nodeSelector:
+              crawler: bps
+          volumeMounts:
+            - mountPath: /app/config.ini
+              name: config
+              subPath: config.ini
+      volumes:
+        - configMap:
+            name: config-bps-daerah
+          name: config
