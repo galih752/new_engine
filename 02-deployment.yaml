@@ -22,8 +22,6 @@ spec:
         - name: bps-daerah-worker
           image: 192.168.202.50/clipper/smart-crawler/bps_daerah_worker
           imagePullPolicy: Always
-          nodeSelector:
-              crawler: bps
           volumeMounts:
             - mountPath: /app/config.ini
               name: config
