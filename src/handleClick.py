@@ -4,7 +4,7 @@ import json
 from time import time
 from loguru import logger
 from datetime import datetime
-from src.exceptions import S3Error, DownloadError
+from exceptions import S3Error, DownloadError
 class handleDownload():
     async def handle_range(self, ranges):
         for i, range in enumerate(ranges):

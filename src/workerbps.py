@@ -10,10 +10,10 @@ from s3fs import S3FileSystem
 from playwright.async_api._context_manager import PlaywrightContextManager
 from playwright.async_api._generated import Playwright as AsyncPlaywright, Playwright
 
-from src.beanstalk import BeanStalk
-from src.handleClick import handleDownload
+from beanstalk import BeanStalk
+from handleClick import handleDownload
 
-from src.exceptions import DownloadError, S3Error, TableNotFound
+from exceptions import DownloadError, S3Error, TableNotFound
 
 class WorkerBps(PlaywrightContextManager, handleDownload):
     def __init__(self, headfull = True) -> None:
