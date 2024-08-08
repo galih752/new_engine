@@ -20,6 +20,7 @@ six==1.16.0
 typing_extensions==4.12.2
 urllib3==2.2.2
 wrapt==1.16.0
+pyssdb==0.4.2
 yarl==1.9.4
 loguru==0.7.2
 click==8.1.3
