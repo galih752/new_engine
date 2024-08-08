@@ -1,5 +1,5 @@
 import threading
-from pusher_core import pusher_core
+from pusher_core import main as pusher_core
 from pusher_nextpage import main as pusher_nextpage
 
 def run_pusher_core():
