@@ -10,10 +10,10 @@ from s3fs import S3FileSystem
 from playwright.async_api._context_manager import PlaywrightContextManager
 from playwright.async_api._generated import Playwright as AsyncPlaywright, Playwright
 
-from beanstalk import BeanStalk
-from handleClick import handleDownload
+from src.beanstalk import BeanStalk
+from src.handleClick import handleDownload
 
-from exceptions import DownloadError, S3Error, TableNotFound
+from src.exceptions import DownloadError, S3Error, TableNotFound
 
 class WorkerBps(PlaywrightContextManager, handleDownload):
     def __init__(self, headfull = True) -> None:
@@ -76,6 +76,9 @@ class WorkerBps(PlaywrightContextManager, handleDownload):
                 self.beanstalk.watch.bury(job)    
             except S3Error:
                 logger.error("s3 error ! %s" % self.link)
+                self.beanstalk.watch.bury(job)
+            except BaseException:
+                logger.error("error ! %s" % self.link)
                 self.beanstalk.watch.bury(job)
             finally:
                 await asyncio.sleep(2)
