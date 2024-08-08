@@ -13,7 +13,7 @@ from playwright.async_api._generated import Playwright as AsyncPlaywright, Playw
 from src.beanstalk import BeanStalk
 from src.handleClick import handleDownload
 
-from .exceptions import DownloadError, S3Error, TableNotFound
+from src.exceptions import DownloadError, S3Error, TableNotFound
 
 class WorkerBps(PlaywrightContextManager, handleDownload):
     def __init__(self, headfull = True) -> None:
