@@ -77,6 +77,9 @@ class WorkerBps(PlaywrightContextManager, handleDownload):
             except S3Error:
                 logger.error("s3 error ! %s" % self.link)
                 self.beanstalk.watch.bury(job)
+            except BaseException:
+                logger.error("error ! %s" % self.link)
+                self.beanstalk.watch.bury(job)
             finally:
                 await asyncio.sleep(2)
             

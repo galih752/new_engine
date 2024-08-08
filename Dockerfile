@@ -4,8 +4,10 @@ COPY requirements.txt /
 
 WORKDIR /
 
-RUN pip install -r requirements.txt \
-    && playwright install --with-deps
+# RUN pip install playwright==1.45.1
+    
+RUN pip install -r requirements.txt && \
+    playwright install --with-deps
 
 WORKDIR /app
 
