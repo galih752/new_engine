@@ -8,8 +8,12 @@ from loguru import logger
 import requests
 import pyssdb
 
-client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_baselink_new')
-
+client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_baselink_new_fix')
+ssdb_client = pyssdb.Client(
+    host="192.168.150.21",
+    port=8888,
+    max_connections=500,
+)
 
 
 cookies = {
@@ -29,6 +33,7 @@ cookies = {
     'TS01395fde': '0167a1c86112f502c1297b01713fbc1eca7b2f7871ca065e8597d13d4af5b2a8252eea8fbea9f97dbd93ac153830ebddfd619d4c63a2e22e51ded4c88778008bdad0f73f84786fea5bc6709945d581653b88e85650109976e145e669e724c3ff26e5d03789',
 }
 
+client2 = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new')
 
 def pusher_core(data2):
     param_list = [
@@ -93,22 +98,20 @@ def pusher_core(data2):
                     "title": item["title"],
                 }
 
-                client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new')
-                client.put(json.dumps(metadata, indent=2), ttr=3600)
-
-                print(json.dumps(metadata))
-
-                ssdb = pyssdb.Client(
-                    host="192.168.150.21",
-                    port=8888,
-                    max_connections=500,
-                )
-
-                
-                hset = ssdb.hset(
-                    "{}".format('sc_bps_daerah_links'), "{}".format(item['id']), "{}".format(json.dumps(metadata))
-                )
-                print("Successfully added {} to ssdb".format(item['id']))
+                exist = ssdb_client.hexists("{}".format('sc_bps_daerah_links_new'), "{}".format(item['id']))
+                exist = exist.decode("utf-8")
+                if exist == "0":
+                    hset = ssdb_client.hset(
+                            'sc_bps_daerah_links_new', 
+                            item['id'], 
+                            json.dumps(metadata)
+                        )
+                    print(f"Successfully added {item['id']} to ssdb")
+                    
+                    if hset:
+                        client2.put(json.dumps(metadata, indent=2), ttr=3600)
+                else:
+                    print(f"Already added {item['id']} to ssdb")
 
 
             try:
@@ -146,14 +149,14 @@ def main():
             success = pusher_core(data2)
 
             if success:
-                client.release(job)
+                client.delete(job)
                 logger.success(f"Job {job.id} processed successfully and deleted.")
             else:
-                client.release(job)
+                client.bury(job)
                 logger.error(f"Job {job.id} failed and buried.")
         except greenstalk.NotFoundError:
             if job:
                 logger.error(f"Job {job.id} not found.")
-                client.release(job)
+                client.bury(job)
 
         time.sleep(1)

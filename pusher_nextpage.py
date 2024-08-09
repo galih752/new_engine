@@ -8,12 +8,14 @@ import requests
 import pyssdb
 
 # Initialize Greenstalk and SSDB clients once
-greenstalk_client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_list_new')
+greenstalk_client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_list_new_fix')
 ssdb_client = pyssdb.Client(
     host="192.168.150.21",
     port=8888,
     max_connections=500,
 )
+
+client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new_fix')
 
 cookies = {
     'f5avraaaaaaaaaaaaaaaa_session_': 'KLDJINDNACFMAOBCGKFLFPPCCCGBJBOLIPGPIOLOMJENGFGPPAIAACGFOKLAGBAFJPNDACLMDPICPOCMEJEAABELCEGENKAIOFFDBGJMHJEPNGJABIIOIEFCKFKOCEAO',
@@ -86,15 +88,21 @@ def proses_job(data):
                 "title": item["title"],
             }
 
-            client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new')
-            client.put(json.dumps(metadata, indent=2), ttr=3600)
+            exist = ssdb_client.hexists("{}".format('sc_bps_daerah_links_new'), "{}".format(item['id']))
+            exist = exist.decode("utf-8")
+            if exist == "0":
+                hset = ssdb_client.hset(
+                        'sc_bps_daerah_links_new', 
+                        item['id'], 
+                        json.dumps(metadata)
+                    )
+                print(f"Successfully added {item['id']} to ssdb")
+                
+                if hset:
+                    client.put(json.dumps(metadata, indent=2), ttr=3600)
+            else:
+                print(f"Already added {item['id']} to ssdb")
 
-            ssdb_client.hset(
-                'sc_bps_daerah_links', 
-                item['id'], 
-                json.dumps(metadata)
-            )
-            print(f"Successfully added {item['id']} to ssdb")
         return True
     except Exception as e:
         logger.error(f"An error occurred: {e}")
@@ -110,7 +118,7 @@ def main():
             success = proses_job(data)
 
             if success:
-                greenstalk_client.bury(job)
+                greenstalk_client.delete(job)
                 logger.success(f"Job {job.id} processed successfully and deleted.")
             else:
                 greenstalk_client.bury(job)
