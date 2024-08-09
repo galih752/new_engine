@@ -139,7 +139,7 @@ def main():
     while True:
         job = None
         try:
-            job = greenstalk_client.reserve()
+            job = greenstalk_client.reserve(timeout=10)
             data = json.loads(job.body)
             success = proses_job(data)
 
