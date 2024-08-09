@@ -8,14 +8,13 @@ import requests
 import pyssdb
 
 # Initialize Greenstalk and SSDB clients once
-greenstalk_client = greenstalk.Client(('192.168.20.175', 11300), watch='sc_bps_daerah_baselink_new_fix_test')
+greenstalk_client = greenstalk.Client(('192.168.20.175', 11300), watch='sc_bps_daerah_baselink_new_fix')
 ssdb_client = pyssdb.Client(
     host="192.168.150.21",
     port=8888,
     max_connections=500,
 )
 
-client = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_detail_new_fix')
 
 cookies = {
     'f5avraaaaaaaaaaaaaaaa_session_': 'JJIBFCAPHIDKPICCBJHACEGODKPNBHFPMPGNJBFAJPIDGHOAFKILCJKJLIODBGCONFIDDDGKAGBMGBILNNNADHPGCMPFPFJNFDKOEPOOPGBFNPHBELHGEBPPKODMEFEB',
@@ -52,7 +51,7 @@ def proses_job(data):
         "content-type": "text/plain;charset=UTF-8",
         "next-action": "7842359e1d2f27b80750062d8bbe8942fb30abc0",
         "next-router-state-tree": "%5B%22%22%2C%7B%22children%22%3A%5B%5B%22lang%22%2C%22id%22%2C%22d%22%5D%2C%7B%22children%22%3A%5B%22statistics-table%22%2C%7B%22children%22%3A%5B%22__PAGE__%3F%7B%5C%22subject%5C%22%3A%5C%22519%5C%22%7D%22%2C%7B%7D%2C%22%2Fid%2Fstatistics-table%3Fsubject%3D519%22%2C%22refresh%22%5D%7D%2Cnull%2Cnull%2Ctrue%5D%7D%2Cnull%2Cnull%2Ctrue%5D%7D%2Cnull%2Cnull%5D",
-        "origin": data['link'],
+        "origin": f"http://{data['link'].split('/')[2]}",
         "priority": "u=1, i",
         "referer": beta_url_table,
         "sec-ch-ua": '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
@@ -106,7 +105,8 @@ def proses_job(data):
                 print(f"Successfully added {item['id']} to ssdb")
                 
                 if hset:
-                    client.put(json.dumps(metadata, indent=2), ttr=3600)
+                    client_detail = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_detail_new_fix')
+                    client_detail.put(json.dumps(metadata, indent=2), ttr=3600)
             else:
                 print(f"Already added {item['id']} to ssdb")
             
@@ -121,10 +121,10 @@ def proses_job(data):
                     "page": page,
                     "subject": data["subject"],
                 }
-                client = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_list_new')
-                client.put(json.dumps(metadata_page, indent=2), ttr=3600)
+                client_nextpage = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_list_new')
+                client_nextpage.put(json.dumps(metadata_page, indent=2), ttr=3600)
 
-                print("Successfully added {} to sc_bps_daerah_list".format(data["subject"]))
+                print("Successfully added {} to sc_bps_daerah_list page : {}".format(data["subject"], page))
         except Exception as e:
             print(e)
             print(traceback.format_exc())
