@@ -98,7 +98,7 @@ class handleDownload():
 
             metadata = {
                 "link": self.data["link"],
-                "domain": "bps.go.id",
+                "domain": self.data["link"].split('/')[2],
                 "tag": [
                     "bps",
                     "bps.go.id",
