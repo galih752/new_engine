@@ -8,7 +8,7 @@ import requests
 import pyssdb
 
 # Initialize Greenstalk and SSDB clients once
-greenstalk_client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_list')
+greenstalk_client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_list_new')
 ssdb_client = pyssdb.Client(
     host="192.168.150.21",
     port=8888,
@@ -86,8 +86,8 @@ def proses_job(data):
                 "title": item["title"],
             }
 
-            greenstalk_client.put(json.dumps(metadata, indent=2), ttr=3600)
-            print(json.dumps(metadata))
+            client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new')
+            client.put(json.dumps(metadata, indent=2), ttr=3600)
 
             ssdb_client.hset(
                 'sc_bps_daerah_links', 

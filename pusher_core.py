@@ -8,7 +8,7 @@ from loguru import logger
 import requests
 import pyssdb
 
-client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_baselink')
+client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_baselink_new')
 
 
 
@@ -93,7 +93,7 @@ def pusher_core(data2):
                     "title": item["title"],
                 }
 
-                client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail')
+                client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new')
                 client.put(json.dumps(metadata, indent=2), ttr=3600)
 
                 print(json.dumps(metadata))
@@ -124,7 +124,7 @@ def pusher_core(data2):
                         "page": page,
                         "params": param
                     }
-                    client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_list')
+                    client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_list_new')
                     client.put(json.dumps(metadata_page, indent=2), ttr=3600)
 
                     print("Successfully added {} to sc_bps_daerah_list".format(param))
