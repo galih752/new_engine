@@ -143,7 +143,7 @@ def main():
     while True:
         job = None
         try:
-            job = client.reserve(1)
+            job = client.reserve()
             data2 = json.loads(job.body)
             print(data2)
             success = pusher_core(data2)
