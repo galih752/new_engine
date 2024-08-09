@@ -8,7 +8,7 @@ from loguru import logger
 import requests
 import pyssdb
 
-client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_baselink_new_fix')
+client = greenstalk.Client(('192.168.20.175', 11300), watch='sc_bps_daerah_baselink_new_fix')
 ssdb_client = pyssdb.Client(
     host="192.168.150.21",
     port=8888,
@@ -33,7 +33,7 @@ cookies = {
     'TS01395fde': '0167a1c86112f502c1297b01713fbc1eca7b2f7871ca065e8597d13d4af5b2a8252eea8fbea9f97dbd93ac153830ebddfd619d4c63a2e22e51ded4c88778008bdad0f73f84786fea5bc6709945d581653b88e85650109976e145e669e724c3ff26e5d03789',
 }
 
-client2 = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new')
+client2 = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_detail_new_fix')
 
 def pusher_core(data2):
     param_list = [
@@ -98,11 +98,11 @@ def pusher_core(data2):
                     "title": item["title"],
                 }
 
-                exist = ssdb_client.hexists("{}".format('sc_bps_daerah_links_new'), "{}".format(item['id']))
+                exist = ssdb_client.hexists("{}".format('sc_bps_daerah_links_new_fix'), "{}".format(item['id']))
                 exist = exist.decode("utf-8")
                 if exist == "0":
                     hset = ssdb_client.hset(
-                            'sc_bps_daerah_links_new', 
+                            'sc_bps_daerah_links_new_fix', 
                             item['id'], 
                             json.dumps(metadata)
                         )
@@ -127,7 +127,7 @@ def pusher_core(data2):
                         "page": page,
                         "params": param
                     }
-                    client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_list_new')
+                    client = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_list_new')
                     client.put(json.dumps(metadata_page, indent=2), ttr=3600)
 
                     print("Successfully added {} to sc_bps_daerah_list".format(param))

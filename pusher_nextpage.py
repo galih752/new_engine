@@ -8,14 +8,14 @@ import requests
 import pyssdb
 
 # Initialize Greenstalk and SSDB clients once
-greenstalk_client = greenstalk.Client(('192.168.150.21', 11300), watch='sc_bps_daerah_list_new_fix')
+greenstalk_client = greenstalk.Client(('192.168.20.175', 11300), watch='sc_bps_daerah_list_new_fix')
 ssdb_client = pyssdb.Client(
     host="192.168.150.21",
     port=8888,
     max_connections=500,
 )
 
-client = greenstalk.Client(('192.168.150.21', 11300), use='sc_bps_daerah_detail_new_fix')
+client = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_detail_new_fix')
 
 cookies = {
     'f5avraaaaaaaaaaaaaaaa_session_': 'KLDJINDNACFMAOBCGKFLFPPCCCGBJBOLIPGPIOLOMJENGFGPPAIAACGFOKLAGBAFJPNDACLMDPICPOCMEJEAABELCEGENKAIOFFDBGJMHJEPNGJABIIOIEFCKFKOCEAO',
@@ -88,11 +88,11 @@ def proses_job(data):
                 "title": item["title"],
             }
 
-            exist = ssdb_client.hexists("{}".format('sc_bps_daerah_links_new'), "{}".format(item['id']))
+            exist = ssdb_client.hexists("{}".format('sc_bps_daerah_links_new_fix'), "{}".format(item['id']))
             exist = exist.decode("utf-8")
             if exist == "0":
                 hset = ssdb_client.hset(
-                        'sc_bps_daerah_links_new', 
+                        'sc_bps_daerah_links_new_fix', 
                         item['id'], 
                         json.dumps(metadata)
                     )
