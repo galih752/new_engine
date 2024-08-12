@@ -101,7 +101,7 @@ def proses_job(data):
                 title = item["title"].lower().replace(" ", "-")
                 title = re.sub("[^A-z0-9]", "-", title)
                 link = (
-                    f"{data['link']}/{item['tablesource']}/{item['id']}/{title}.html"
+                    f"{data['link']}/statistics-table/{item['tablesource']}/{item['id']}/{title}.html"
                 )
 
                 metadata = {
