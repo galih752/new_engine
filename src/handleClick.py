@@ -57,10 +57,11 @@ class handleDownload():
                 if 'xlsx' in (await btn.inner_text()).lower():
                     await btn.click()
             download = await download_info.value
-            await download.save_as(local_file_path := 'temp.xlsx')
+            file_buffer = BytesIO()
+            await download.save_as(file_buffer)
 
-            if not os.path.exists(local_file_path):
-                logger.warning("Downloaded file does not exist.")
+            # if not os.path.exists(local_file_path):
+            #     logger.warning("Downloaded file does not exist.")
 
             name_level = self.link.split('/')[2].split('.')[0]
             sub_title_text = await (await self.page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")).inner_text()
@@ -85,16 +86,16 @@ class handleDownload():
                 return
 
             try:
-                with open(local_file_path, 'rb') as local_file:
-                    with self.s3.open(s3_file_xlsx, 'wb') as s3_file:
-                        s3_file.write(local_file.read())
+                # with open(local_file_path, 'rb') as local_file:
+                with self.s3.open(s3_file_xlsx, 'rb') as s3_file:
+                    s3_file.write(file_buffer.read())
 
-                    logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
+                logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
 
             except Exception as e:
                 raise S3Error("failed push to s3 xlsx")
 
-            os.remove(local_file_path)
+            # os.remove(local_file_path)
 
 
             metadata = {
