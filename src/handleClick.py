@@ -1,6 +1,6 @@
 import os
 import json
-
+from io import BytesIO
 from time import time
 from loguru import logger
 from datetime import datetime
@@ -59,7 +59,7 @@ class handleDownload():
             download = await download_info.value
             await download.save_as(local_file_path := 'temp.xlsx')
 
-            if not os.path.exists(local_file_path): 
+            if not os.path.exists(local_file_path):
                 logger.warning("Downloaded file does not exist.")
 
             name_level = self.link.split('/')[2].split('.')[0]
@@ -90,18 +90,19 @@ class handleDownload():
                         s3_file.write(local_file.read())
 
                     logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
-                        
+
             except Exception as e:
                 raise S3Error("failed push to s3 xlsx")
 
             os.remove(local_file_path)
 
+
             metadata = {
                 "link": self.data["link"],
-                "domain": self.data["link"].split('/')[2],
+                "domain": f"{self.data['link'].split('/')[2]}.bps.go.id",
                 "tag": [
                     "bps",
-                    "bps.go.id",
+                    f"{self.data['link'].split('/')[2]}.bps.go.id",
                     "statistics table",
                 ],
                 "title": self.data['title'],
