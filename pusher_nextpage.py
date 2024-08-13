@@ -137,6 +137,7 @@ def proses_job(data):
                         "tag": ["bps", data["link"].split("/")[2], "statistics table"],
                         "page": page,
                         "subject": data["subject"],
+                        "update": item["last_update"],
                     }
                     client_nextpage = greenstalk.Client(
                         ("192.168.20.175", 11300), use="sc_bps_daerah_list_new"
