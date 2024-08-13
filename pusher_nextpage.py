@@ -108,9 +108,10 @@ def proses_job(data):
                     "link": link,
                     "domain": data["link"].split("/")[2],
                     "tag": ["bps", "bps.go.id", "statistics table"],
-                    "category": item["subject"],
-                    "sub_category": item["subcat"],
+                    "category": item["subcat"],
+                    "sub_category": item["subject"],
                     "title": item["title"],
+                    "update": item["last_update"],
                 }
                 exist = ssdb_client.hexists(
                     "{}".format("sc_bps_daerah_links_new_fix"), "{}".format("saljdj")

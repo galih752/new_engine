@@ -57,11 +57,10 @@ class handleDownload():
                 if 'xlsx' in (await btn.inner_text()).lower():
                     await btn.click()
             download = await download_info.value
-            file_buffer = BytesIO()
-            await download.save_as(file_buffer)
+            await download.save_as(local_file_path := 'temp.xlsx')
 
-            # if not os.path.exists(local_file_path):
-            #     logger.warning("Downloaded file does not exist.")
+            if not os.path.exists(local_file_path): 
+                logger.warning("Downloaded file does not exist.")
 
             name_level = self.link.split('/')[2].split('.')[0]
             sub_title_text = await (await self.page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/h1")).inner_text()
@@ -84,31 +83,41 @@ class handleDownload():
             if self.s3.exists(s3_file_xlsx) and self.s3.exists(s3_file_json):
                 logger.warning(f"File already exists in S3")
                 return
+            
+            # try:
+            #     # Upload the buffer directly to S3
+            #     with self.s3.open(s3_file_xlsx, 'wb') as s3_file:
+            #         s3_file.write(file_buffer.read())
 
+            #     logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
+
+            # except Exception as e:
+            #     logger.error(f"Error uploading file to S3: {e}")
+            #     return False
+            
             try:
-                # with open(local_file_path, 'rb') as local_file:
-                with self.s3.open(s3_file_xlsx, 'rb') as s3_file:
-                    s3_file.write(file_buffer.read())
+                with open(local_file_path, 'rb') as local_file:
+                    with self.s3.open(s3_file_xlsx, 'wb') as s3_file:
+                        s3_file.write(local_file.read())
 
-                logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
-
+                    logger.success(f"Uploaded file to S3: {s3_file_xlsx}")
+                        
             except Exception as e:
                 raise S3Error("failed push to s3 xlsx")
 
-            # os.remove(local_file_path)
-
+            os.remove(local_file_path)
 
             metadata = {
                 "link": self.data["link"],
-                "domain": f"{self.data['link'].split('/')[2]}.bps.go.id",
+                "domain": f"{self.data['link'].split('/')[2]}",
                 "tag": [
                     "bps",
-                    f"{self.data['link'].split('/')[2]}.bps.go.id",
+                    f"{self.data['link'].split('/')[2]}",
                     "statistics table",
                 ],
                 "title": self.data['title'],
                 "sub_title": sub_title_text,
-                'update': (await (await self.page.query_selector("//html/body/div[2]/div[2]/div[2]/div[1]/div[1]/div[1]/p")).inner_text()).split(':')[-1].strip(),
+                'update': self.data['update'],
                 'desc': (await desc.inner_text()).strip() if (desc := await self.page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[3]/div')) else None,
                 'category': self.data['category'],
                 'sub_category': self.data['sub_category'],
