@@ -117,7 +117,7 @@ class handleDownload():
                 ],
                 "title": self.data['title'],
                 "sub_title": sub_title_text,
-                'update': self.data['update'],
+                'update': self.data['update'] if self.data['update'] else None,
                 'desc': (await desc.inner_text()).strip() if (desc := await self.page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[3]/div')) else None,
                 'category': self.data['category'],
                 'sub_category': self.data['sub_category'],
