@@ -4,7 +4,7 @@ from io import BytesIO
 from time import time
 from loguru import logger
 from datetime import datetime
-from src.exceptions import S3Error, DownloadError
+from src.exceptions import S3Error, DownloadError, TableNotFound
 class handleDownload():
     async def handle_range(self, ranges):
         for i, range in enumerate(ranges):
@@ -117,7 +117,7 @@ class handleDownload():
                 ],
                 "title": self.data['title'],
                 "sub_title": sub_title_text,
-                'update': self.data['update'] if self.data['update'] else None,
+                'update': self.data['update'] if self.data.get('update') else None,
                 'desc': (await desc.inner_text()).strip() if (desc := await self.page.query_selector('//html/body/div[2]/div[2]/div[2]/div[1]/div[3]/div')) else None,
                 'category': self.data['category'],
                 'sub_category': self.data['sub_category'],
