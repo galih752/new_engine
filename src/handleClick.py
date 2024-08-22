@@ -108,11 +108,11 @@ class handleDownload():
             os.remove(local_file_path)
 
             metadata = {
-                "link": self.data["link"].replace(".beta",""),
-                "domain": f"{self.data['link'].replace('.beta','').split('/')[2]}",
+                "link": self.data["link"],
+                "domain": f"{self.data['link'].split('/')[2]}",
                 "tag": [
                     "bps",
-                    f"{self.data['link'].replace('.beta','').split('/')[2]}",
+                    f"{self.data['link'].split('/')[2]}",
                     "statistics table",
                 ],
                 "title": self.data['title'],
