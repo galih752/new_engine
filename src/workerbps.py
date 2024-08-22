@@ -47,7 +47,7 @@ class WorkerBps(PlaywrightContextManager, handleDownload):
         
         while(job := self.beanstalk.watch.reserve()):
             self.data = json.loads(job.body)
-            self.link = self.data["link"]
+            self.link = self.data["link"].replace(".beta","")
             
             await self.page.goto(self.link)
             

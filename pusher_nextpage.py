@@ -22,20 +22,19 @@ client_detail = greenstalk.Client(
 )
 
 cookies = {
-    "f5avraaaaaaaaaaaaaaaa_session_": "JJIBFCAPHIDKPICCBJHACEGODKPNBHFPMPGNJBFAJPIDGHOAFKILCJKJLIODBGCONFIDDDGKAGBMGBILNNNADHPGCMPFPFJNFDKOEPOOPGBFNPHBELHGEBPPKODMEFEB",
-    "_ga_CLP8Q4CR7J": "GS1.1.1721987499.2.1.1721988896.0.0.0",
-    "_ga_MBEH1B2Q1F": "GS1.1.1722074871.2.1.1722074881.0.0.0",
-    "_ga_SLZ6H0R0CX": "GS1.1.1722191457.5.0.1722191457.60.0.0",
-    "_ga_T7YPSCVK8R": "GS1.1.1722221423.2.0.1722221423.0.0.0",
-    "_ga_7FD8073S86": "GS1.1.1722228771.11.1.1722228937.0.0.0",
-    "_ga_578WLYVT58": "GS1.1.1722236209.6.1.1722236210.0.0.0",
-    "_ga": "GA1.1.984331042.1721381442",
-    "asw": '{"lang":"id"}',
-    "e437b945144c4368eba347f6b8fbb958": "2446141807173d3ff0517b7bf5f0b03e",
-    "f5avraaaaaaaaaaaaaaaa_session_": "CPEKBKBAJJDLPCFNOLNJEJEJJBPBJMOAJAPJNMFMAOICALNIJMFNDJOHJFNOGMBIMEEDKPDDBGKOADAHPECAMHNGCMMFBKPEFELCBAOBOHEOCBHNCKPGEONNDLLJINEM",
-    "_ga_XXTTVXWHDB": "GS1.1.1723188762.70.1.1723189036.0.0.0",
-    "bpscinfo": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYWRhbiBQdXNhdCBTdGF0aXN0aWsiLCJqdGkiOiJueXJaU3djVm9NVUx0NWRyMmZ5TF8iLCJpYXQiOjE3MjMxODg3MzcsImV4cCI6MTcyMzE5NjIzN30.1LKp_w_DU9aGd40ypkubS-bAoF8iig9P9fft6tgBGWE",
-    "TS01395fde": "0167a1c861d50b763a3f97a32caa19c1d993c278471b73dc44ce943f5e8d87f8bb129ba7224b7a70b534ec687f129da158f83333003d8c1cbf092a08cdcc1a028258af497ff50a90732215204f4545ea6deeb38a6f42678aa43f820227527a2797d1f63059",
+    '_ga_CLP8Q4CR7J': 'GS1.1.1721987499.2.1.1721988896.0.0.0',
+    '_ga_MBEH1B2Q1F': 'GS1.1.1722074871.2.1.1722074881.0.0.0',
+    '_ga_SLZ6H0R0CX': 'GS1.1.1722191457.5.0.1722191457.60.0.0',
+    '_ga_T7YPSCVK8R': 'GS1.1.1722221423.2.0.1722221423.0.0.0',
+    '_ga_7FD8073S86': 'GS1.1.1722228771.11.1.1722228937.0.0.0',
+    '_ga_578WLYVT58': 'GS1.1.1722236209.6.1.1722236210.0.0.0',
+    '_ga': 'GA1.1.984331042.1721381442',
+    '3260b63773fe9b40bf656718d4d3ceca': '6d028256c1cd83984c21571b357dd89a',
+    'asw': '{"lang":"id"}',
+    'f5avraaaaaaaaaaaaaaaa_session_': 'DAALNLPMLIJAGDLNOBDOLBGEDHCEADAPEHPIKKDOFNKBNFALNHNNEPKFOEAODPHMBFCDENDPENLIPLENENJAAOGIPPGINELIBJOPEFLCAENHJCGHAMCEKLLCPEILEFNO',
+    '_ga_XXTTVXWHDB': 'GS1.1.1723792012.79.1.1723793203.0.0.0',
+    'bpscinfo': 'eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYWRhbiBQdXNhdCBTdGF0aXN0aWsiLCJqdGkiOiJhTHM2Y1J0QW1ZZ1k5NHRUcUZzaXAiLCJpYXQiOjE3MjM3OTI5MDQsImV4cCI6MTcyMzgwMDQwNH0.EySJVG5-87kxImq0eH0Ysa44Wg7o1BUSpnx0IBnsWTY',
+    'TS01395fde': '0167a1c861a28ff8f22f6ab4e953b2fa681f58743ad08831382beae1d679b3dd79a5bd1b74e8bcd2b8cad0df947e2a7fef2252540ab83bd8f17cf5b02dea0c2ae8d945ddf161ff6d4a9a1c29b7443750553866b3e0f45ab171a8167178a04b5acacd435bbf',
 }
 
 
@@ -139,16 +138,29 @@ def proses_job(data):
                         "subject": data["subject"],
                         "update": item["last_update"],
                     }
-                    client_nextpage = greenstalk.Client(
-                        ("192.168.20.175", 11300), use="sc_bps_daerah_list_new"
-                    )
-                    client_nextpage.put(json.dumps(metadata_page, indent=2), ttr=3600)
 
-                    print(
-                        "Successfully added {} to sc_bps_daerah_list page : {}".format(
-                            data["subject"], page
-                        )
+                    exist = ssdb_client.hexists(
+                    "{}".format("sc_bps_daerah_links_new_fix"), "{}".format("saljdj")
                     )
+                    exist = exist.decode("utf-8")
+                    if exist == "0":
+                        ssdb_client.hset(
+                            "sc_bps_daerah_links_new_fix", item["id"], json.dumps(metadata)
+                        )
+
+                        print(f"Successfully added {item['id']} to ssdb & beanstalk")
+                        client_nextpage = greenstalk.Client(
+                            ("192.168.20.175", 11300), use="sc_bps_daerah_list_new"
+                        )
+                        client_nextpage.put(json.dumps(metadata_page, indent=2), ttr=3600)
+
+                        print(
+                            "Successfully added {} to sc_bps_daerah_list page : {}".format(
+                                data["subject"], page
+                            )
+                        )
+                    else:
+                        print(f"Already added {item['id']} to ssdb")
             except Exception as e:
                 print(e)
                 print(traceback.format_exc())

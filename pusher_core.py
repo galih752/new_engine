@@ -127,8 +127,22 @@ def pusher_core(data2):
                         "page": page,
                         "params": param
                     }
-                    client = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_list_new')
-                    client.put(json.dumps(metadata_page, indent=2), ttr=3600)
+                    exist = ssdb_client.hexists("{}".format('sc_bps_daerah_links_new_fix'), "{}".format(item['id']))
+                    exist = exist.decode("utf-8")
+                    if exist == "0":
+                        hset = ssdb_client.hset(
+                                'sc_bps_daerah_links_new_fix', 
+                                item['id'], 
+                                json.dumps(metadata)
+                            )
+                        print(f"Successfully added {item['id']} to ssdb")
+                        
+                        if hset:
+                            client2.put(json.dumps(metadata, indent=2), ttr=3600)
+                            client = greenstalk.Client(('192.168.20.175', 11300), use='sc_bps_daerah_list_new')
+                            client.put(json.dumps(metadata_page, indent=2), ttr=3600)
+                    else:
+                        print(f"Already added {item['id']} to ssdb")
 
                     print("Successfully added {} to sc_bps_daerah_list".format(param))
             except Exception as e:

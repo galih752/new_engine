@@ -7,7 +7,7 @@ metadata:
   name: bps-daerah-pusher
   namespace: nextgen
 spec:
-  replicas: 0
+  replicas: 10
   selector:
     matchLabels:
       app: smart-crawler
@@ -18,12 +18,12 @@ spec:
         app: smart-crawler
         kind: bps-daerah
     spec:
+      nodeSelector:
+        crawler: bps
       containers:
         - name: bps-daerah-pusher
           image: 192.168.202.50/clipper/smart-crawler/bps_daerah_pusher
           imagePullPolicy: Always
-          nodeSelector:
-              crawler: bps
           volumeMounts:
             - mountPath: /app/config.ini
               name: config
