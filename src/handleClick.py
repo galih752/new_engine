@@ -109,10 +109,10 @@ class handleDownload():
 
             metadata = {
                 "link": self.data["link"].replace(".beta",""),
-                "domain": f"{self.data['link'].replace(".beta","").split('/')[2]}",
+                "domain": f"{self.data['link'].replace('.beta','').split('/')[2]}",
                 "tag": [
                     "bps",
-                    f"{self.data['link'].replace(".beta","").split('/')[2]}",
+                    f"{self.data['link'].replace('.beta','').split('/')[2]}",
                     "statistics table",
                 ],
                 "title": self.data['title'],

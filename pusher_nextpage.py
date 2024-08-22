@@ -6,19 +6,21 @@ from loguru import logger
 import traceback
 import requests
 import pyssdb
+import redis
 
 # Initialize Greenstalk and SSDB clients once
 greenstalk_client = greenstalk.Client(
-    ("192.168.20.175", 11300), watch="sc_bps_daerah_baselink_new_fix"
+    ("159.65.134.198", 11303), watch="sc_bps_daerah_baselink_new_fix"
 )
-ssdb_client = pyssdb.Client(
-    host="192.168.150.21",
-    port=8888,
+redis_client = redis.Redis(
+    host="159.65.134.198",
+    port=4739,
     max_connections=500,
+    password="R3d!5Vp5@2o23"
 )
 
 client_detail = greenstalk.Client(
-    ("192.168.20.175", 11300), use="sc_bps_daerah_detail_new_fix"
+    ("159.65.134.198", 11303), use="sc_bps_daerah_detail_new_fix"
 )
 
 cookies = {
@@ -112,12 +114,12 @@ def proses_job(data):
                     "title": item["title"],
                     "update": item["last_update"],
                 }
-                exist = ssdb_client.hexists(
+                exist = redis_client.hexists(
                     "{}".format("sc_bps_daerah_links_new_fix"), "{}".format("saljdj")
                 )
                 exist = exist.decode("utf-8")
                 if exist == "0":
-                    ssdb_client.hset(
+                    redis_client.hset(
                         "sc_bps_daerah_links_new_fix", item["id"], json.dumps(metadata)
                     )
 
@@ -139,18 +141,18 @@ def proses_job(data):
                         "update": item["last_update"],
                     }
 
-                    exist = ssdb_client.hexists(
+                    exist = redis_client.hexists(
                     "{}".format("sc_bps_daerah_links_new_fix"), "{}".format("saljdj")
                     )
                     exist = exist.decode("utf-8")
                     if exist == "0":
-                        ssdb_client.hset(
+                        redis_client.hset(
                             "sc_bps_daerah_links_new_fix", item["id"], json.dumps(metadata)
                         )
 
                         print(f"Successfully added {item['id']} to ssdb & beanstalk")
                         client_nextpage = greenstalk.Client(
-                            ("192.168.20.175", 11300), use="sc_bps_daerah_list_new"
+                            ("159.65.134.198", 11303), use="sc_bps_daerah_list_new"
                         )
                         client_nextpage.put(json.dumps(metadata_page, indent=2), ttr=3600)
 
